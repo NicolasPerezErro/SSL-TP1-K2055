@@ -8,6 +8,25 @@
 #define HEXADECIMAL 3
 #define ERROR_LEXICO 4
 
+
+// UTILIDADES
+
+void leerArchivo(const char *nombreArchivo, void (procesarCadena)(char *)) {
+    FILE *archivo = fopen(nombreArchivo, "r");
+
+    if (archivo == NULL) {
+        printf("Error al abrir el archivo\n");
+        return;
+    }
+
+    char cadena[1024];
+    while (fgets(cadena, sizeof(cadena), archivo) != NULL) {
+        procesarCadena(cadena);
+    }
+
+    fclose(archivo);
+}
+
 // EJERCICIO 1
 
 // Tabla de transiciones
@@ -31,7 +50,7 @@ int columna(char c) {
     if (tolower(c) >= 'a' && tolower(c) <= 'f') return 3;
     if (c == 'x' || c == 'X') return 4;
     if (c == '-' || c == '+') return 5;
-    return 7;
+    return 6;
 }
 
 const int obtenerTipoNumero(char *cadena) {
@@ -50,19 +69,29 @@ const int obtenerTipoNumero(char *cadena) {
     return ERROR_LEXICO;
 }
 
+char * debugResultado(int resultado) {
+    switch (resultado) {
+        case DECIMAL: return "Decimal";
+        case OCTAL: return "Octal";
+        case HEXADECIMAL: return "Hexadecimal";
+        case ERROR_LEXICO: return "Error léxico";
+        default: return "Desconocido";
+    }
+}
+
 void procesarCadena(char *cadena) {
     char *token = strtok(cadena, "#");
     int decimales = 0, octales = 0, hexadecimales = 0, erroresLexicos = 0;
 
     while (token != NULL) {
-        const char resultado = obtenerTipoNumero(token);
+        const int resultado = obtenerTipoNumero(token);
 
              if (resultado == DECIMAL)      decimales++;
         else if (resultado == OCTAL)        octales++;
         else if (resultado == HEXADECIMAL)  hexadecimales++;
         else if (resultado == ERROR_LEXICO) erroresLexicos++;
 
-        printf("Cadena: %s -> %c\n", token, resultado);
+        printf("Cadena: %s\t->\t%s\n", token, debugResultado(resultado));
         token = strtok(NULL, "#");
     }
 
@@ -75,41 +104,45 @@ void procesarCadena(char *cadena) {
 
 // EJERCICIO 2
 
-int convertirCharANumero(char caracter)
-{
-    if (caracter >= 48 && caracter <= 57)
-        return caracter - 48;
-    return -1; // error
+int convertirCharANumero(char caracter) {
+    // Si el caracter es un número, se le resta el valor ASCII de '0' para obtener el número entero
+    if (caracter >= '0' && caracter <= '9') return caracter - '0';
+    // Si no es un número, se retorna -1 para indicar un error
+    return -1;
+}
+
+// EJERCICIO 3
+
+void obtenerResultadoDeOperacion(char *cadena) {
+    int resultado = 0; // Acumulador de la operación
+    int estado = 0; // Operador
+    
+    int i = 0;
+    char c = cadena[i];
+    while (c != '\0') {
+        estado = tt[estado][columna(c)];
+
+        // TODO
+
+        // Seguir leyendo el número
+        c = cadena[++i];
+    }
+
+    printf("Resultado de la operación: %s = %d\n", cadena, resultado);
 }
 
 int main() {
-    printf("Test de columna:\n");
-    printf("Columna 0: %d\n", columna('0'));
-    printf("Columna 1: %d\n", columna('1'));
-    printf("Columna 2: %d\n", columna('8'));
-    printf("Columna 3: %d\n", columna('a'));
-    printf("Columna 4: %d\n", columna('x'));
-    printf("Columna 5: %d\n", columna('-'));
-    printf("Columna 6: %d\n", columna('G'));
-
     // EJERCICIO 1
-
-    FILE *archivo = fopen("cadena.txt", "r");
-    char cadena[1024];
-
-    if (archivo != NULL)
-    {
-        if (fgets(cadena, sizeof(cadena), archivo) != NULL) {
-            procesarCadena(cadena);
-        } else {
-            printf("Error al leer el archivo.\n");
-        }
-        fclose(archivo);
-    }
+    printf("\nEJERCICIO 1\n");
+    leerArchivo("cadenaPunto1.txt", procesarCadena);
 
     // EJERCICIO 2
+    printf("\nEJERCICIO 2\n");
+    printf("Conversion char '%c' a int: %d\n", '5', convertirCharANumero('5'));
 
-    printf("Conversion char a int: %d\n", convertirCharANumero('5'));
+    // EJERCICIO 3
+    printf("\nEJERCICIO 3\n");
+    leerArchivo("cadenaPunto3.txt", obtenerResultadoDeOperacion);
 
     return 0;
 }
