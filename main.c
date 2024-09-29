@@ -28,6 +28,16 @@ void leerArchivo(const char *nombreArchivo, void (procesarCadena)(char *)) {
     fclose(archivo);
 }
 
+char * debugResultado(int resultado) {
+    switch (resultado) {
+        case DECIMAL: return "Decimal";
+        case OCTAL: return "Octal";
+        case HEXADECIMAL: return "Hexadecimal";
+        case ERROR_LEXICO: return "Error léxico";
+        default: return "Desconocido";
+    }
+}
+
 // EJERCICIO 1
 
 // Tabla de transiciones
@@ -70,16 +80,6 @@ const int obtenerTipoNumero(char *cadena) {
     return ERROR_LEXICO;
 }
 
-char * debugResultado(int resultado) {
-    switch (resultado) {
-        case DECIMAL: return "Decimal";
-        case OCTAL: return "Octal";
-        case HEXADECIMAL: return "Hexadecimal";
-        case ERROR_LEXICO: return "Error léxico";
-        default: return "Desconocido";
-    }
-}
-
 void procesarCadena(char *cadena) {
     char *token = strtok(cadena, "#");
     int decimales = 0, octales = 0, hexadecimales = 0, erroresLexicos = 0;
@@ -114,23 +114,15 @@ int convertirCharANumero(char caracter) {
 
 // EJERCICIO 3
 
-/**
- * Para convertir una expresión matemática en notación infija
- * a notación postfija (notación polaca inversa, RPN) utilizando un autómata finito,
- * se utiliza el algoritmo conocido como "Shunting-yard" de Dijkstra.
- */
-
  // Función para verificar la precedencia de operadores
 int precedencia(char operador) {
     switch (operador) {
-        case '+':
-        case '-':
-            return 1;
         case '*':
         case '/':
             return 2;
-        case '^':
-            return 3;
+        case '+':
+        case '-':
+            return 1;
         default:
             return 0;
     }
@@ -138,22 +130,15 @@ int precedencia(char operador) {
 
 // Función para verificar si un carácter es un operador
 int esOperador(char c) {
-    return c == '+' || c == '-' || c == '*' || c == '/' || c == '^';
+    return c == '+' || c == '-' || c == '*' || c == '/';
 }
 
-// Función para verificar si un carácter es un paréntesis
-int esParentesis(char c) {
-    return c == '(' || c == ')';
-}
-
-int resolverOperacionPosfija(char *cadena) {
-    // Implementar la resolución de la operación en notación posfija
-    return 0; // Retornar el resultado de la operación
-}
-
+/**
+ * Para convertir una expresión matemática en notación infija
+ * a notación postfija (notación polaca inversa, RPN) utilizando un autómata finito,
+ * se utiliza el algoritmo conocido como "Shunting-yard" de Dijkstra.
+ */
 int convertirANotacionPosfija(char *cadena, char *resultado) {
-    // Implementar la conversión a notación posfija
-
     char pila[MAX];  // Pila para operadores
     int tope = -1;   // Índice del tope de la pila
     int posResultado = 0;  // Índice de la cadena de resultado
@@ -165,24 +150,16 @@ int convertirANotacionPosfija(char *cadena, char *resultado) {
         if (isdigit(c)) {
             resultado[posResultado++] = c;
         }
-        // Si el carácter es un paréntesis izquierdo, lo empujamos a la pila
-        else if (c == '(') {
-            pila[++tope] = c;
-        }
-        // Si el carácter es un paréntesis derecho, sacamos de la pila hasta encontrar el paréntesis izquierdo
-        else if (c == ')') {
-            while (tope >= 0 && pila[tope] != '(') {
-                resultado[posResultado++] = pila[tope--];
-            }
-            tope--; // Eliminar el paréntesis izquierdo de la pila
-        }
         // Si el carácter es un operador
         else if (esOperador(c)) {
-            // Desapilamos mientras la precedencia sea mayor o igual y el tope de la pila no sea '('
+            // Desapilamos mientras la precedencia sea mayor o igual
             while (tope >= 0 && esOperador(pila[tope]) && precedencia(pila[tope]) >= precedencia(c)) {
                 resultado[posResultado++] = pila[tope--];
             }
             pila[++tope] = c;  // Apilar el operador actual
+        } else {
+            // Si no es un número ni un operador, entonces detectamos un error léxico
+            return 0;
         }
     }
 
@@ -194,18 +171,61 @@ int convertirANotacionPosfija(char *cadena, char *resultado) {
     resultado[posResultado] = '\0';  // Terminar el resultado como una cadena
 
     return 1;  // Retornar 1 para indicar éxito
-    return 0; // Retornar el resultado de la operación
+}
+
+int resolverOperacionPosfija(char *cadena) {
+    int pila[MAX];  // Pila para operandos
+    int tope = -1;  // Índice del tope de la pila
+
+    for (int i = 0; cadena[i] != '\0'; i++) {
+        char c = cadena[i];
+
+        // Si el carácter es un número, lo agregamos a la pila
+        if (isdigit(c)) {
+            pila[++tope] = convertirCharANumero(c);
+        }
+        // Si el carácter es un operador
+        else if (esOperador(c)) {
+            // Desapilamos los dos operandos
+            int op2 = pila[tope--];
+            int op1 = pila[tope--];
+
+            // Realizamos la operación correspondiente
+            switch (c) {
+                case '+':
+                    pila[++tope] = op1 + op2;
+                    break;
+                case '-':
+                    pila[++tope] = op1 - op2;
+                    break;
+                case '*':
+                    pila[++tope] = op1 * op2;
+                    break;
+                case '/':
+                    pila[++tope] = op1 / op2;
+                    break;
+            }
+        }
+    }
+
+    return pila[tope];  // Retornar el resultado de la operación
 }
 
 void obtenerResultadoDeOperacion(char *cadena) {
-    // Convertir a notación posfija (notación polaca inversa) con un automata
-    // Esto valida que la cadena sea una operación aritmética
+    printf("Cadena de operación: %s\n", cadena);
     char postfix[1024];
-    convertirANotacionPosfija(cadena, postfix);
+    // Convertir a notación posfija (notación polaca inversa)
+    const int ok = convertirANotacionPosfija(cadena, postfix);
+    if (!ok) {
+        printf("Error léxico en la cadena: %s\n", cadena);
+        return;
+    }
+
+    printf("Cadena en notación posfija: %s\n", postfix);
 
     // Calcular el resultado dada la cadena de operación en notación posfija
     int resultado = resolverOperacionPosfija(postfix);
-    printf("Resultado de la operación: %s = %d\n", cadena, resultado);
+    printf("Resultado de la operación: %d\n", resultado);
 }
 
 int main() {
@@ -219,7 +239,10 @@ int main() {
 
     // EJERCICIO 3
     printf("\nEJERCICIO 3\n");
+    printf("Operación básica: \n");
     leerArchivo("cadenaPunto3.txt", obtenerResultadoDeOperacion);
+    printf("\nOperación con error léxico:\n");
+    leerArchivo("cadenaPunto3ConErrorLexico.txt", obtenerResultadoDeOperacion);
 
     return 0;
 }
