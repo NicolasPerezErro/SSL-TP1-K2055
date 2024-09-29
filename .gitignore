@@ -3,6 +3,8 @@ main
 main.exe
 bin/
 obj/
-
+*.o
+*.out
+*.exe
 # Mac OS X
 .DS_Store
