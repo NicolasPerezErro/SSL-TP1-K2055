@@ -113,21 +113,29 @@ int convertirCharANumero(char caracter) {
 
 // EJERCICIO 3
 
+/**
+ * Para convertir una expresión matemática en notación infija 
+ * a notación postfija (notación polaca inversa, RPN) utilizando un autómata finito, 
+ * se utiliza el algoritmo conocido como "Shunting-yard" de Dijkstra.
+ */
+int convertirANotacionPosfija(char *cadena, char *resultado) {
+    // Implementar la conversión a notación posfija
+    return 0; // Retornar el resultado de la operación
+}
+
+int resolverOperacionPosfija(char *cadena) {
+    // Implementar la resolución de la operación en notación posfija
+    return 0; // Retornar el resultado de la operación
+}
+
 void obtenerResultadoDeOperacion(char *cadena) {
-    int resultado = 0; // Acumulador de la operación
-    int estado = 0; // Operador
-    
-    int i = 0;
-    char c = cadena[i];
-    while (c != '\0') {
-        estado = tt[estado][columna(c)];
+    // Convertir a notación posfija (notación polaca inversa) con un automata 
+    // Esto valida que la cadena sea una operación aritmética
+    char postfix[1024];
+    convertirANotacionPosfija(cadena, postfix);
 
-        // TODO
-
-        // Seguir leyendo el número
-        c = cadena[++i];
-    }
-
+    // Calcular el resultado dada la cadena de operación en notación posfija
+    int resultado = resolverOperacionPosfija(postfix);
     printf("Resultado de la operación: %s = %d\n", cadena, resultado);
 }
 
