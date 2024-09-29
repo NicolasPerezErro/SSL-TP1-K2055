@@ -1,6 +1,0 @@
-# depslib dependency file v1.0
-1727404146 source:c:\users\nico_\onedrive\desktop\utn\semantica y sintaxis de lenguaje - anual\2024\tp-automatas\main.c
-	<stdio.h>
-	<ctype.h>
-	<string.h>
-
