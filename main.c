@@ -7,6 +7,7 @@
 #define OCTAL 2
 #define HEXADECIMAL 3
 #define ERROR_LEXICO 4
+#define MAX 100
 
 
 // UTILIDADES
@@ -32,14 +33,14 @@ void leerArchivo(const char *nombreArchivo, void (procesarCadena)(char *)) {
 // Tabla de transiciones
 static int tt[8][7] = {
     //           0  [1-7] [8-9] [a-f] [xX]  [+-] [Otro]
-    /* q0 - */ { 1,  2,    2,    7,    7,    6,  7 },
-    /* q1   */ { 5,  5,    7,    7,    3,    7,  7 },
-    /* q2 + */ { 2,  2,    2,    7,    7,    7,  7 },
-    /* q3   */ { 4,  4,    4,    4,    7,    7,  7 },
-    /* q4 + */ { 4,  4,    4,    4,    7,    7,  7 },
-    /* q5 + */ { 5,  5,    7,    7,    7,    7,  7 },
-    /* q6   */ { 2,  2,    2,    7,    7,    7,  7 },
-    /* q7   */ { 7,  7,    7,    7,    7,    7,  7 }
+    /* q0 - */ { 1,  2,    2,    7,    7,    6,    7 },
+    /* q1   */ { 5,  5,    7,    7,    3,    7,    7 },
+    /* q2 + */ { 2,  2,    2,    7,    7,    7,    7 },
+    /* q3   */ { 4,  4,    4,    4,    7,    7,    7 },
+    /* q4 + */ { 4,  4,    4,    4,    7,    7,    7 },
+    /* q5 + */ { 5,  5,    7,    7,    7,    7,    7 },
+    /* q6   */ { 2,  2,    2,    7,    7,    7,    7 },
+    /* q7   */ { 7,  7,    7,    7,    7,    7,    7 }
 };
 
 // Carácter a columna de la tabla de transiciones
@@ -99,7 +100,7 @@ void procesarCadena(char *cadena) {
     printf("Decimales: %d\n", decimales);
     printf("Octales: %d\n", octales);
     printf("Hexadecimales: %d\n", hexadecimales);
-    printf("Errores Léxicos: %d\n", erroresLexicos);
+    printf("Errores Lexicos: %d\n", erroresLexicos);
 }
 
 // EJERCICIO 2
@@ -114,13 +115,35 @@ int convertirCharANumero(char caracter) {
 // EJERCICIO 3
 
 /**
- * Para convertir una expresión matemática en notación infija 
- * a notación postfija (notación polaca inversa, RPN) utilizando un autómata finito, 
+ * Para convertir una expresión matemática en notación infija
+ * a notación postfija (notación polaca inversa, RPN) utilizando un autómata finito,
  * se utiliza el algoritmo conocido como "Shunting-yard" de Dijkstra.
  */
-int convertirANotacionPosfija(char *cadena, char *resultado) {
-    // Implementar la conversión a notación posfija
-    return 0; // Retornar el resultado de la operación
+
+ // Función para verificar la precedencia de operadores
+int precedencia(char operador) {
+    switch (operador) {
+        case '+':
+        case '-':
+            return 1;
+        case '*':
+        case '/':
+            return 2;
+        case '^':
+            return 3;
+        default:
+            return 0;
+    }
+}
+
+// Función para verificar si un carácter es un operador
+int esOperador(char c) {
+    return c == '+' || c == '-' || c == '*' || c == '/' || c == '^';
+}
+
+// Función para verificar si un carácter es un paréntesis
+int esParentesis(char c) {
+    return c == '(' || c == ')';
 }
 
 int resolverOperacionPosfija(char *cadena) {
@@ -128,8 +151,54 @@ int resolverOperacionPosfija(char *cadena) {
     return 0; // Retornar el resultado de la operación
 }
 
+int convertirANotacionPosfija(char *cadena, char *resultado) {
+    // Implementar la conversión a notación posfija
+
+    char pila[MAX];  // Pila para operadores
+    int tope = -1;   // Índice del tope de la pila
+    int posResultado = 0;  // Índice de la cadena de resultado
+
+    for (int i = 0; cadena[i] != '\0'; i++) {
+        char c = cadena[i];
+
+        // Si el carácter es un número, lo agregamos directamente al resultado
+        if (isdigit(c)) {
+            resultado[posResultado++] = c;
+        }
+        // Si el carácter es un paréntesis izquierdo, lo empujamos a la pila
+        else if (c == '(') {
+            pila[++tope] = c;
+        }
+        // Si el carácter es un paréntesis derecho, sacamos de la pila hasta encontrar el paréntesis izquierdo
+        else if (c == ')') {
+            while (tope >= 0 && pila[tope] != '(') {
+                resultado[posResultado++] = pila[tope--];
+            }
+            tope--; // Eliminar el paréntesis izquierdo de la pila
+        }
+        // Si el carácter es un operador
+        else if (esOperador(c)) {
+            // Desapilamos mientras la precedencia sea mayor o igual y el tope de la pila no sea '('
+            while (tope >= 0 && esOperador(pila[tope]) && precedencia(pila[tope]) >= precedencia(c)) {
+                resultado[posResultado++] = pila[tope--];
+            }
+            pila[++tope] = c;  // Apilar el operador actual
+        }
+    }
+
+    // Al final, vaciar la pila
+    while (tope >= 0) {
+        resultado[posResultado++] = pila[tope--];
+    }
+
+    resultado[posResultado] = '\0';  // Terminar el resultado como una cadena
+
+    return 1;  // Retornar 1 para indicar éxito
+    return 0; // Retornar el resultado de la operación
+}
+
 void obtenerResultadoDeOperacion(char *cadena) {
-    // Convertir a notación posfija (notación polaca inversa) con un automata 
+    // Convertir a notación posfija (notación polaca inversa) con un automata
     // Esto valida que la cadena sea una operación aritmética
     char postfix[1024];
     convertirANotacionPosfija(cadena, postfix);
